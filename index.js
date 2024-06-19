@@ -1,16 +1,14 @@
-import express from "express";
-import cors from "cors";
-import path from "path";
-import dotenv from "dotenv";
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
-const __dirname = path.dirname(__filename); // get the name of the directory
-dotenv.config({ path: path.join(__dirname, ".env") });
+import http from "http";
+import { mongoConnect } from "./db/mongo.js";
+import app from "./app.js";
 
-const app = express();
-app.use(express.json());
-app.use(cors());
+const server = http.createServer(app);
+const PORT = process.env.PORT || 8000;
+async function startServer() {
+  await mongoConnect();
+  server.listen(PORT, () => {
+    console.log(`Listening on port ${PORT}`);
+  });
+}
 
-app.listen(8000, (req, res) => {
-  console.log("Listening on Port 8000");
-});
+startServer();
