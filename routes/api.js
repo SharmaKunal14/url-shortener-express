@@ -3,6 +3,6 @@ import urlRouter from "./url/url.router.js";
 
 const api = express.Router();
 
-api.use("/url", urlRouter);
+api.use("/", urlRouter);
 
 export default api;

@@ -1,10 +1,6 @@
 import mongoose from "mongoose";
 
 const urlSchema = new mongoose.Schema({
-  id: {
-    type: Number,
-    required: true,
-  },
   shortURL: {
     type: String,
     required: true,
@@ -12,6 +8,7 @@ const urlSchema = new mongoose.Schema({
   longURL: {
     type: String,
     required: true,
+    index: true,
   },
   domain: {
     type: String,
@@ -19,4 +16,4 @@ const urlSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("URL", urlSchema);
+export default mongoose.model("URL", urlSchema);
