@@ -8,6 +8,12 @@ const checkLongURLAlreadyExists = async (longURL) => {
   }
 };
 
+const checkShortURLAlreadyExists = async (shortURL) => {
+  const shortenedURL = process.env.BASE_URL + "/" + shortURL;
+  const response = await urlModel.findOne({ shortURL: shortenedURL });
+  return response.longURL;
+};
+
 const saveShortenedURL = async (longURL, shortURL, domain) => {
   const response = await urlModel.create({
     longURL: longURL,
@@ -30,4 +36,9 @@ const topDomainsShortened = async () => {
   return response;
 };
 
-export { checkLongURLAlreadyExists, saveShortenedURL, topDomainsShortened };
+export {
+  checkLongURLAlreadyExists,
+  checkShortURLAlreadyExists,
+  saveShortenedURL,
+  topDomainsShortened,
+};

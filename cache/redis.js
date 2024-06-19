@@ -10,8 +10,9 @@ const redisConnect = async () => {
   if (env == "local") {
     host = "127.0.0.1";
   } else {
-    host = "redis";
+    host = "redis-nodejs";
   }
+
   redisClient = createClient({
     socket: {
       host: host,

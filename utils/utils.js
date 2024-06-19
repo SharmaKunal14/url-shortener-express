@@ -1,10 +1,4 @@
-import crypto from "crypto";
-
-const generateBase64Encoding = (inputString) => {
-  const hash = crypto.createHash("sha256");
-  hash.update(inputString);
-  return hash.digest("base64");
-};
+import crc32 from "crc32";
 
 const isValidHttpURL = (string) => {
   try {
@@ -23,4 +17,9 @@ const getDomain = (url) => {
 
   return domain;
 };
-export { generateBase64Encoding, isValidHttpURL, getDomain };
+
+const generateHash = (url) => {
+  return parseInt(crc32(url), 32);
+};
+
+export { isValidHttpURL, getDomain, generateHash };

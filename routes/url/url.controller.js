@@ -1,17 +1,14 @@
 import { redisClient } from "../../cache/redis.js";
 import {
   checkLongURLAlreadyExists,
+  checkShortURLAlreadyExists,
   saveShortenedURL,
   topDomainsShortened,
 } from "../../models/url.model.js";
-import {
-  generateBase64Encoding,
-  getDomain,
-  isValidHttpURL,
-} from "../../utils/utils.js";
+import { charcterMap } from "../../utils/constants.js";
+import { generateHash, getDomain, isValidHttpURL } from "../../utils/utils.js";
 
 const shortenURLAndSaveToDBAndCache = async (req, res) => {
-  // long URL
   try {
     const { longURL } = req.body;
 
@@ -22,6 +19,7 @@ const shortenURLAndSaveToDBAndCache = async (req, res) => {
     }
 
     const shortURL = await checkLongURLAlreadyExists(longURL);
+    let domain = getDomain(longURL);
 
     if (shortURL) {
       return res.status(200).send({
@@ -31,14 +29,21 @@ const shortenURLAndSaveToDBAndCache = async (req, res) => {
       });
     }
 
-    let base64Value = generateBase64Encoding(longURL);
-    base64Value = base64Value.slice(0, 15);
+    let hash = parseInt(generateHash(longURL));
+    let tempHash = hash;
+    let base62Encoding = "";
 
-    let domain = getDomain(longURL);
+    while (tempHash > 0) {
+      const rem = tempHash % 62;
+      const char = charcterMap[rem];
+      base62Encoding += char;
+      tempHash /= 62;
+      tempHash = parseInt(tempHash);
+    }
 
-    const shortenedURL = process.env.BASE_URL + "/" + base64Value;
+    const shortenedURL = process.env.BASE_URL + "/" + base62Encoding;
     const saveToDB = await saveShortenedURL(longURL, shortenedURL, domain);
-    const saveToCache = await redisClient.set(base64Value, longURL);
+    const saveToCache = await redisClient.set(base62Encoding, longURL);
     if (saveToDB && saveToCache) {
       return res.status(200).send({
         ok: true,
@@ -66,10 +71,19 @@ const topDomains = async (req, res) => {
 
 const redirectToLongURL = async (req, res) => {
   const { shortURL } = req.params;
-  const longURL = await redisClient.get(shortURL);
+  let longURL = await redisClient.get(shortURL);
+
   if (longURL) {
     return res.status(301).redirect(longURL);
   }
+
+  longURL = await checkShortURLAlreadyExists(shortURL);
+
+  if (longURL) {
+    await redisClient.set(shortURL, longURL);
+    return res.status(301).redirect(longURL);
+  }
+
   return res
     .status(404)
     .send({ ok: false, message: "Requested URL not found" });

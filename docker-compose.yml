@@ -1,0 +1,41 @@
+version: "0.1"
+services:
+  prom-server:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana-server:
+    image: grafana/grafana-oss
+    container_name: grafana
+    ports:
+      - 3000:3000
+    depends_on:
+      - prom-server
+
+  db:
+    image: "mongo"
+    container_name: mongo-nodejs
+    ports:
+      - "27017:27017"
+    depends_on:
+      - cache
+
+  api:
+    container_name: "api-nodejs"
+    build: .
+    depends_on:
+      - cache
+      - db
+
+    ports:
+      - "8000:8000"
+
+  cache:
+    container_name: redis-nodejs
+    build: cache
+    ports:
+      - "6379:6379"
